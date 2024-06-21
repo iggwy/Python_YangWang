@@ -18,7 +18,7 @@ current_path = os.path.abspath(__file__)
 BepiC_data_folder = os.path.dirname(current_path)  # To customize the path, modify it here
 # The data folder structure is：MESSENGER_data_folder +'/MESSENGER_Data/MAG/Science_MAG/NPY/'
 def Read_MAG_TABdata(filename,version='1.0',IO='ib',frame='e2k'):
-    #从本地读取TAB文件并转化为npy文件（提高之后读取速度）
+    #Read TAB files locally and convert them to npy files (improved reading speed later)
     import numpy as np
     import PyFileIO as pf
     if version =='1.0':
@@ -62,31 +62,31 @@ def Read_MAG_TABdata(filename,version='1.0',IO='ib',frame='e2k'):
           np.save(npyfilepath + 'mag_der_sc_' + IO + '_a001_'+frame+'_00000_'+out.UTC_Str[0][0:4] \
               + out.UTC_Str[0][5:7] + out.UTC_Str[0][8:10] + '.npy',out)
 def Read_Mag_npydata(Time_Range=None,version='1.0',IO='ib',frame='e2k'):
-    # 读取本地npy文件，若本地存在对应时间npy文件，则进行读取，若不存在则PDS自动下载到本地
+    # Read the local npy file. If the local npy file exists at the corresponding time, the NPY file is read. If no NPY file exists, the PDS automatically downloads the NPY file to the local computer
     Datetime_start = datetime(int(Time_Range[0][0:4]), int(Time_Range[0][5:7]), int(Time_Range[0][8:10]))
     Datetime_end = datetime(int(Time_Range[1][0:4]), int(Time_Range[1][5:7]), int(Time_Range[1][8:10]))
     delta = Datetime_end-Datetime_start
-    # 初始化当前日期为开始日期
+    # Initializes the current date to the start date
     current_date = Datetime_start
-    # 创建一个空列表存储所有的日期
+    # Create an empty list to store all the dates
     all_dates = []
-    # 循环从开始日期到结束日期
+    # Loop from the start date to the end date
     while current_date <= Datetime_end:
         all_dates.append(current_date.strftime("%Y-%m-%d"))
         current_date += timedelta(days=1)
-    # 检查是否存在npy数据文件夹,若不存在则创立npy数据文件夹
+    # Check whether an npy data folder exists. If not, create an npy data folder
     if version=='1.0':
      npyfilepath = BepiC_data_folder + '/BepiC_Data/MPO/MAG/version1.0/1s/NYP/'
      if not os.path.isdir(npyfilepath):
             os.makedirs(npyfilepath)
-    # 若时间范围跨多个文件则将连接多个文件
-    MAG = {}  # 创建连接多个npy文件数据的空字典
+    # If the time range spans multiple files, multiple files are connected
+    MAG = {}  # Create an empty dictionary that joins data from multiple npy files
     for date in all_dates:
         if version == '1.0':
             npyfilename = 'mag_der_sc_' + IO + '_a001_'+frame+'_00000_'+date[0:4] \
               + date[5:7] + date[8:10] + '.npy'
         npyfull_path = os.path.join(npyfilepath, npyfilename)
-        # 检查文件是否存在
+        # Check whether the file exists
         if os.path.exists(npyfull_path):
             MAG_npy = np.load(npyfull_path, allow_pickle=True)
             print("npy.File loaded successfully.")
@@ -112,13 +112,13 @@ def Read_Mag_npydata(Time_Range=None,version='1.0',IO='ib',frame='e2k'):
                 else:
                     return None
         for name in MAG_npy.dtype.names:
-            # 如果数组名已经存在于 merged_arrays 中，则将当前数组与已存在的数组合并
+            # If the array name already exists in merged_arrays, the current array is merged with an existing array
             if name in MAG:
                 MAG[name] = np.concatenate((MAG[name], MAG_npy[name]))
-            # 如果数组名不存在于 merged_arrays 中，则将当前数组添加到 merged_arrays 中
+            # If the array name does not exist in merged_arrays, the current array is added to merged_arrays
             else:
                 MAG[name] = MAG_npy[name]
-    Time_range_s = datetime.strptime(Time_Range[0], "%Y-%m-%d %H:%M:%S")  # 此处可更改
+    Time_range_s = datetime.strptime(Time_Range[0], "%Y-%m-%d %H:%M:%S")  # Can be changed here
     Time_range_e = datetime.strptime(Time_Range[1], "%Y-%m-%d %H:%M:%S")
     index = np.where((MAG['Time'] > Time_range_s) & (MAG['Time'] < Time_range_e))
     returndtype = [('UTC_Str', 'object'),
@@ -139,7 +139,7 @@ def Read_Mag_npydata(Time_Range=None,version='1.0',IO='ib',frame='e2k'):
     returndata.Bz = MAG['Bz'][index[0]]
     returndata.Time = MAG['Time'][index[0]]
     return returndata
-# 全局变量，用于保存时间范围和索引
+# A global variable that holds time ranges and indexes
 time_range_index = 0
 def MAG_GUI(time_ranges=None,version='1.0',time_list='None',save_mode=None):
     """Usage: Assign a time range list with n*2 to time_ranges.
@@ -153,7 +153,7 @@ def MAG_GUI(time_ranges=None,version='1.0',time_list='None',save_mode=None):
     global time_range_index
     current_time_range = time_ranges[time_range_index]
 
-    # 创建主窗口
+    # Create main window
     root = tk.Tk()
     root.title("Interactive Plot")
     root.geometry("1100x800")
@@ -167,20 +167,20 @@ def MAG_GUI(time_ranges=None,version='1.0',time_list='None',save_mode=None):
     style.configure('TFrame', background='#f0f0f0')
 
     mag_mso = Read_Mag_npydata(current_time_range,version)
-    if mag_mso is None:#如果下载不到MPO_MAG数据，将自动读取下一个时间范围
+    if mag_mso is None:#If the MPO_MAG data cannot be downloaded, the next time range is automatically read
         root.destroy()
         time_range_index = time_range_index+1
         MAG_GUI(time_ranges, save_mode=save_mode, time_list=time_list)
     bt = np.sqrt(mag_mso.Bx ** 2 + mag_mso.By ** 2 + mag_mso.Bz ** 2)
 
-    # 创建绘图区域
+    # Create plot area
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6))
     fig.subplots_adjust(hspace=0)
     canvas = FigureCanvasTkAgg(fig, master=root)
     canvas_widget = canvas.get_tk_widget()
     canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=20, pady=20)
 
-    # 初始绘图数据
+    # Initial plot data
     ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
     ax2.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
     ax1.plot(mag_mso.Time, bt, 'black', linewidth=0.5)
@@ -211,15 +211,15 @@ def MAG_GUI(time_ranges=None,version='1.0',time_list='None',save_mode=None):
           time_range_index=time_range_index+1
           MAG_GUI(time_ranges, save_mode='Auto', time_list=time_list)
 
-    # 保存竖线横坐标和竖线对象的列表
+    # Saves a list of vertical horizontal coordinates and vertical objects
     x_coords = []
     lines1 = []
     lines2 = []
 
-    # 控制是否可以插入竖线的标志变量
+    # A flag variable that controls whether a vertical bar can be inserted
     can_insert_line = True
 
-    # 处理点击事件的函数
+    # A function that handles click events
     def on_click(event):
         nonlocal can_insert_line
         if event.inaxes and can_insert_line:
@@ -235,41 +235,41 @@ def MAG_GUI(time_ranges=None,version='1.0',time_list='None',save_mode=None):
                 can_insert_line = False
             canvas.draw()
 
-    # 绑定点击事件
+    # Bind click event
     fig.canvas.mpl_connect('button_press_event', on_click)
 
-    # 保存到CSV文件的函数
+    # Save the function to CSV file
     def save_to_csv():
         global time_range_index
         file_path = "time_coords.csv"
         new_data = [time_range_index + 1] + x_coords
         if os.path.isfile(file_path):
-            # 读取CSV文件
+            # Reading CSV file
             with open(file_path, 'r') as file:
                 reader = csv.reader(file)
                 lines = list(reader)
-                # 检查是否存在与当前time_range_index相对应的行
+                # Check whether there is a row corresponding to the current time range index
                 for i, line in enumerate(lines):
                     if i > 0 and int(line[0]) == time_range_index + 1:
-                        # 替换当前行的数据
+                        # Replace the data in the current row
                         lines[i] = new_data
                         break
                 else:
-                    # 如果不存在与当前time_range_index相对应的行，则添加新的行
+                    # If there is no row corresponding to the current time_range_index, a new row is added
                     lines.append(new_data)
-            # 重新写入CSV文件
+            # Write the CSV file again
             with open(file_path, 'w', newline='') as file:
                 writer = csv.writer(file)
                 writer.writerows(lines)
         else:
-            # 如果文件不存在，直接写入新数据
+            # If the file does not exist, write the new data directly
             with open(file_path, 'w', newline='') as file:
                 writer = csv.writer(file)
                 writer.writerow(["number", "X Coordinate 1", "X Coordinate 2"])
                 writer.writerow(new_data)
         print(f"Coordinates saved to {file_path}")
 
-    # 清除竖线的函数
+    # Function to clear vertical lines
     def clear_lines():
         for line1, line2 in zip(lines1, lines2):
             line1.remove()
@@ -281,7 +281,7 @@ def MAG_GUI(time_ranges=None,version='1.0',time_list='None',save_mode=None):
         nonlocal can_insert_line
         can_insert_line = True
 
-    # 定义放大功能
+    # Define amplification function
     def zoom_in():
         if x_coords:
             x_min = min(x_coords)
@@ -300,7 +300,7 @@ def MAG_GUI(time_ranges=None,version='1.0',time_list='None',save_mode=None):
             clear_lines()
             canvas.draw()
 
-    # 定义缩小功能
+    # Definition reduction function
     def zoom_out():
         ax1.set_xlim(mag_mso.Time[0], mag_mso.Time[-1])
         ax2.set_xlim(mag_mso.Time[0], mag_mso.Time[-1])
@@ -311,11 +311,11 @@ def MAG_GUI(time_ranges=None,version='1.0',time_list='None',save_mode=None):
         can_insert_line = True
         canvas.draw()
 
-    # 创建按钮框架
+    # Create button frame
     button_frame = ttk.Frame(root)
     button_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=20, pady=20)
 
-    # 创建按钮
+    # create button
     clear_button = ttk.Button(button_frame, text="Clear Lines", command=clear_lines)
     clear_button.grid(row=0, column=0, padx=10, pady=10)
 
