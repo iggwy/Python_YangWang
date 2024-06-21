@@ -97,7 +97,7 @@ def Read_Mag_npydata(Time_Range=None,version='1.0',IO='ib',frame='e2k'):
                 if not os.path.isdir(tabfilepath):
                     os.makedirs(tabfilepath)
                 tabfilename = 'mag_der_sc_' + IO + '_a001_'+frame+'_00000_'+date[0:4] \
-              + date[5:7] + date[8:10] + '.TAB'
+              + date[5:7] + date[8:10] + '.tab'
             tabfull_path = os.path.join(tabfilepath, tabfilename)
             if os.path.exists(tabfull_path):
                 print("tab.File loaded successfully and will be transfered to npy.file.")
