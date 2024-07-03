@@ -12,11 +12,11 @@ import urllib.request
 import requests
 import pandas as pd
 
-# Define global variables: MESSENGER data path. The default is the folder where the current script resides.
+# Define global variables: Bepi data path. The default is the folder where the current script resides.
 current_path = os.path.abspath(__file__)
 # Get the path to the folder where the current script file resides
 BepiC_data_folder = os.path.dirname(current_path)  # To customize the path, modify it here
-# The data folder structure is：MESSENGER_data_folder +'/MESSENGER_Data/MAG/Science_MAG/NPY/'
+
 def Read_MAG_TABdata(filename,version='1.0',IO='ib',frame='e2k'):
     #Read TAB files locally and convert them to npy files (improved reading speed later)
     import numpy as np
