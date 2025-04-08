@@ -202,8 +202,8 @@ def download_TW1_data(instru='MAMOG', accur='32Hz', Time_range=None):
 
         # ==== 主程序调用 ====
         if __name__ == "__main__":
-            username = "yangwangdsel2025"
-            password = "Wang1234."
+            username = "username"#输入你的用户名及密码
+            password = "password"
 
             cookies = get_cookies(username, password)
             return cookies
